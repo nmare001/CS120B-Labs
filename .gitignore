@@ -1,0 +1,13 @@
+.atsuo
+*.atsln
+*.xml
+*.eep
+*.elf
+*.hex
+*.lss
+*.map
+*.srec
+*.d
+*.o
+*.mk
+MAKEFILE
