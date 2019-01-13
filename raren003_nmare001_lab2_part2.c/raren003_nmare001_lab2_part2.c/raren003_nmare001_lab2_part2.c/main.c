@@ -1,4 +1,4 @@
-/* Partner(s) Name & E-mail: Robert Arenas, raren003@ucr.edu, Noah Marestaing, nmare001@ucr.edu
+/* Partner(s) Name & E-mail:Robert Arenas, raren003@ucr.edu, Noah Marestaing, nmare001@ucr.edu
 * Lab Section: 022
 * Assignment: Lab #2 Exercise #2
 * Exercise Description: [optional - include for your own benefit]
@@ -43,3 +43,4 @@ int main(void)
 		PORTC = cntavail;
 	}
 }
+
