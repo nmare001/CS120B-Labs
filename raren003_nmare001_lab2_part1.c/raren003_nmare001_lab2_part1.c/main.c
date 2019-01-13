@@ -1,5 +1,4 @@
-/*Name & E-mail: Robert Arenas, raren003@ucr.edu
-* Partner(s) Name & E-mail:
+/* Partner(s) Name & E-mail: Robert Arenas, raren003@ucr.edu, Noah Marestaing, nmare001@ucr.edu
 * Lab Section: 022
 * Assignment: Lab #2 Exercise #1
 * Exercise Description: [optional - include for your own benefit]
@@ -21,7 +20,7 @@ int main(void)
 	{
 		// 1) Read input
 		tmpA = PINA;
-		if(tmpA == 0x01){
+		if(tmpA == 0x01 || tmpA == 0x02){
 			tmpB = (tmpB & 0x00) | 0x01;
 		}
 		else{
