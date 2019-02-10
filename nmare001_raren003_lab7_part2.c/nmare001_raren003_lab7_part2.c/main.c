@@ -16,6 +16,8 @@ enum States {START, INIT, NEXTLED, LIT, WAIT} state;
 unsigned char tmpB = 0x00; //variable for setting portB
 unsigned char button = 0x00;
 unsigned char score = 0x00;
+unsigned char* winMessage = "YOU WINN!!!";
+
 
 void Tick(){
 	switch(state){			//transitions
@@ -30,16 +32,23 @@ void Tick(){
 		
 		case NEXTLED:
 		state = NEXTLED;
-		if (button && (tmpB == 0x02)) {
-			++score;
+		if (button) {
+			
+			if (tmpB == 0x02)
+			{
+				++score;
+				}else{
+				if (score > 0)
+				{
+					--score;
+				}
+			}
+			
 			state = LIT;
 			
+			}else if(!button){
+			state = NEXTLED;
 		}
-		else if (button) {
-			--score;
-			state = LIT;
-		}
-		else state = NEXTLED;
 		break;
 		
 		case LIT:
@@ -48,7 +57,7 @@ void Tick(){
 		break;
 		
 		case WAIT:
-		if (button && (score == 9)) state = START;
+		if (button && (score == 9)){ state = START; LCD_ClearScreen();}
 		else if (button) state = INIT;
 		else state = WAIT;
 		break;
@@ -77,28 +86,24 @@ void Tick(){
 		{
 			tmpB = tmpB * 2;
 		}
-		LCD_Cursor(1);					//position cursor on the LCD display
-		LCD_WriteData(score + '0');
 		PORTB = tmpB;
 		break;
 		
 		case LIT:
+		LCD_Cursor(1);					//position cursor on the LCD display
+		LCD_WriteData(score + '0');
 		if (score == 9) {
-			LCD_Cursor(1);					//position cursor on the LCD display
-			LCD_WriteData(99 + '0');
+			LCD_DisplayString(1, winMessage);
 			
 		}
+		break;
 		
 		case WAIT:
 		if (score == 9) {
-			LCD_Cursor(1);					//position cursor on the LCD display
-			LCD_WriteData(99 + '0');
+			LCD_DisplayString(1, winMessage);
 			
 		}
-		
-		
-		
-		
+		break;
 		
 		default:
 		break;
