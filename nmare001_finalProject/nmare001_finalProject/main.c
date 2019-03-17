@@ -1,6 +1,6 @@
-/* Partner(s) Name & E-mail: Robert Arenas, raren003@ucr.edu, Noah Marestaing, nmare001@ucr.edu
+/* Partner(s) Name & E-mail:Noah Marestaing, nmare001@ucr.edu
 * Lab Section: 022
-* Assignment: Lab #10 Exercise #3 W/struct task
+* Assignment: Final Project
 * Exercise Description: [optional - include for your own benefit]
 *
 * I acknowledge all content contained herein, excluding template or example
@@ -19,23 +19,30 @@ typedef struct task {
 } task;
 
 task tasks[3];
-const unsigned short tasksNum = 4;
-const unsigned long taskPeriodGCD = 2;
-const unsigned long periodLightSeq = 400;
+const unsigned short tasksNum = 3;
+const unsigned long taskPeriodGCD = 50;
+const unsigned long periodLightSeq = 150;
 const unsigned long periodSoundSeq = 50;
-const unsigned long periodCombineLED = 2;
-const unsigned long periodSpeaker = 2;
-
+const unsigned long periodInstrumentSel = 50;
 
 static unsigned char threeLEDs = 0x00;
 static unsigned char bilnkingLED =  0x00;
 static unsigned char speakerOutput = 0x00;
 //////////////////////////////////
 static unsigned char lightPos = 0x80;
+unsigned char sound0 = 0x00;
 unsigned char sound1 = 0x00;
 unsigned char sound2 = 0x00;
-unsigned char sound3 = 0x00;
+unsigned char soundt = 0x00;
 unsigned char soundPicked = 0x00;
+unsigned char tmpC = 0x00;
+unsigned char button1 = 0x00;
+unsigned char SO_cnt = 0x00;
+unsigned char instrument = 0x00;
+unsigned char sound1Check = 0x01;
+unsigned char sound0Check = 0x00;
+unsigned char lsP = 3;
+unsigned char lsCnt = 0;
 //////////////////////////////////
 
 enum LIGHTSEQ_STATES {LS_Start, LS_Play}E;
@@ -46,7 +53,8 @@ int TickFct_LightSeq(int state){
 		state = LS_Play;
 		break;
 		
-		case LS_Play:
+		state = LS_Play;
+		PORTC = 0xFF;
 		break;
 		
 		default:
@@ -60,6 +68,8 @@ int TickFct_LightSeq(int state){
 		break;
 		
 		case LS_Play:
+		if (lsCnt >= lsP) {
+			lsCnt = 0;
 		if (lightPos > 0x01) {
 			lightPos = lightPos / 2;
 			PORTB = lightPos;
@@ -67,8 +77,18 @@ int TickFct_LightSeq(int state){
 		else {
 			lightPos = 0x80;
 			PORTB = lightPos;
-			PORTC = 0x01;
+			//PORTD = 0xFF;
 		}
+		if (lightPos & sound0) PORTC = 0xFE;
+		else if (lightPos & sound1) PORTC = 0xFD;
+		else if (lightPos & sound2) PORTC = 0xFB;
+		else PORTC = 0xFF;
+		}
+		else PORTC = 0xFF;
+		++lsCnt;
+		//if (lightPos == 0x80) sound0Check = 1;
+		//else sound0Check = 0;
+		
 		
 		break;
 		
@@ -78,12 +98,32 @@ int TickFct_LightSeq(int state){
 	return state;
 }
 
-enum SOUNDSEQ_STATES {SS_Start, SS_Run};
+enum SOUNDSEQ_STATES {SS_Start, SS_Wait, SS_Press, SS_Release};
 int TickFct_SoundSeq(int state){
 	
 	switch(state){
 		case SS_Start:
-		state = SS_Run;
+		state = SS_Wait;
+		break;
+		
+		case SS_Wait:
+		if (button1) {
+			state = SS_Press;
+		}
+		break;
+		
+		case SS_Press:
+		if (instrument == 0) soundt = sound0;
+		else if (instrument == 1) soundt = sound1;
+		else if (instrument == 2) soundt = sound2;
+		state = SS_Release;
+		
+		break;
+		
+		case SS_Release:
+		if (!button1) {
+			state = SS_Wait;
+		}
 		break;
 		
 		default:
@@ -94,9 +134,57 @@ int TickFct_SoundSeq(int state){
 		case SS_Start:
 		break;
 		
-		case SS_Run:
-		//PORTD = 0xFF;
+		case SS_Wait:
 		break;
+		
+		case SS_Press:
+		if (instrument == 0) soundt = sound0;
+		else if (instrument == 1) soundt = sound1;
+		else if (instrument == 2) soundt = sound2;
+		if ((button1 & 0x80) && (button1 & 0x40)) soundt = soundt;
+		else if ((button1 & 0x01) && (button1 & 0x02)) soundt = soundt;
+		else {
+		if (button1 & 0x80) {
+			if (soundt & 0x80) soundt = soundt - 0x80;
+			else soundt = soundt + 0x80;
+		}
+		if (button1 & 0x40) {
+			if (soundt & 0x40) soundt = soundt - 0x40;
+			else soundt = soundt + 0x40;
+		}
+		if (button1 & 0x20) {
+			if (soundt & 0x20) soundt = soundt - 0x20;
+			else soundt = soundt + 0x20;
+		}
+		if (button1 & 0x10) {
+			if (soundt & 0x10) soundt = soundt - 0x10;
+			else soundt = soundt + 0x10;
+		}
+		if (button1 & 0x08) {
+			if (soundt & 0x08) soundt = soundt - 0x08;
+			else soundt = soundt + 0x08;
+		}
+		if (button1 & 0x04) {
+			if (soundt & 0x04) soundt = soundt - 0x04;
+			else soundt = soundt + 0x04;
+		}
+		if (button1 & 0x02) {
+			if (soundt & 0x02) soundt = soundt - 0x02;
+			else soundt = soundt + 0x02;
+		}
+		if (button1 & 0x01) {
+			if (soundt & 0x01) soundt = soundt - 0x01;
+			else soundt = soundt + 0x01;
+		}
+		}
+		if (instrument == 0) sound0 = soundt;
+		else if (instrument == 1) sound1 = soundt;
+		else if (instrument == 2) sound2 = soundt;
+		break;
+		
+		case SS_Release:
+		break;
+		
 		
 		default:
 		break;
@@ -104,26 +192,62 @@ int TickFct_SoundSeq(int state){
 	return state;
 }
 
-enum COMBINELED_STATES {CO_start, CO_combine };
-int TickFct_CombineLeds(int state){
+enum INSTRUMENT_SEL {IS_Start, IS_Wait, IS_Press, IS_Release, BPM_Inc, BPM_Dec };
+int TickFct_InstrumentSel(int state){
 	
 	switch(state){
-		case CO_start:
-		state =  CO_combine;
+		case IS_Start:
+		state = IS_Wait;
 		break;
 		
-		case CO_combine:
-		state = CO_combine;
+		case IS_Wait:
+		if ((button1 & 0x80) && (button1 & 0x40)) state = IS_Press;
+		else if ((button1 & 0x01) && (button1 & 0x02)) state = BPM_Inc;
+		else if ((button1 & 0x01) && (button1 & 0x04)) state = BPM_Dec;
+		break;
+		
+		case IS_Press:
+		state = IS_Release;
+		break;
+		
+		case BPM_Inc:
+		state = IS_Release;
+		break;
+		
+		case BPM_Dec:
+		state = IS_Release;
+		
+		case IS_Release:
+		//if (!((button1 & 0x80) && (button1 & 0x40))) state = IS_Wait;
+		if (!button1) state = IS_Wait;
 		break;
 		
 	}
 	
 	switch(state){
-		case CO_start:
+		case IS_Start:
 		break;
 		
-		case CO_combine:
-		//PORTB = threeLEDs | bilnkingLED;
+		case IS_Wait:
+		if (instrument == 0) PORTD = sound0;
+		else if (instrument == 1) PORTD = sound1;
+		else if (instrument == 2) PORTD = sound2;
+		break;
+		
+		case IS_Press:
+		if (instrument < 2) ++instrument;
+		else instrument = 0;
+		break;
+		
+		case BPM_Inc:
+		if (lsP > 1) --lsP;
+		break;
+		
+		case BPM_Dec:
+		if (lsP < 5) ++lsP;
+		break;
+		
+		case IS_Release:
 		break;
 		
 	}
@@ -131,6 +255,7 @@ int TickFct_CombineLeds(int state){
 	return state;
 	
 }
+
 
 
 
@@ -213,45 +338,16 @@ ISR(TIMER1_COMPA_vect)
 
 
 
-enum SPEAKER_STATES {SP_start, SP_wait, SP_on};
-int TickFct_Speaker(int state){
-	switch(state){
-		case SP_start:
-		state =  SP_start;
-		break;
-		
-		case SP_wait:
-		break;
-		
-		case SP_on:
-		break;
-		
-		default:
-		break;
-	}
-	
-	switch(state){
-		case SP_start:
-		break;
-		
-		case SP_wait:
-		break;
-		
-		case  SP_on:
-		default:
-		break;
-		
-	}
-	
-	return state;
-}
+
 
 int main(void)
 {
 	DDRA = 0x00; PORTA = 0xFF; //set PORTA as input
 	DDRB = 0xFF; PORTB = 0x00; //set PORTB as output initialize to 0
-	DDRC = 0xFF; PORTC = 0x00;
-	
+	DDRC = 0xFF; PORTC = 0xFF;
+	DDRD = 0xFF; PORTD = 0x00;
+	//PORTC = 0xFF;
+	button1 = ~PINA;
 	unsigned char i = 0;
 	tasks[i].state = LS_Start;
 	tasks[i].period = periodLightSeq;
@@ -263,15 +359,12 @@ int main(void)
 	tasks[i].elapsedTime = 0;
 	tasks[i].TickFct = &TickFct_SoundSeq;
 	i++;
-	tasks[i].state = CO_start;
-	tasks[i].period = periodCombineLED;
+	tasks[i].state = IS_Start;
+	tasks[i].period = periodInstrumentSel;
 	tasks[i].elapsedTime = 0;
-	tasks[i].TickFct = &TickFct_CombineLeds;
+	tasks[i].TickFct = &TickFct_InstrumentSel;
 	i++;
-	tasks[i].state = SP_start;
-	tasks[i].period = periodSpeaker;
-	tasks[i].elapsedTime = 0;
-	tasks[i].TickFct = &TickFct_Speaker;
+	
 	
 	
 	TimerSet(taskPeriodGCD);
@@ -279,6 +372,9 @@ int main(void)
 	
 	while (1)
 	{
+		button1 = ~PINA;
 	}
 }
+
+
 
