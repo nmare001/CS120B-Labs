@@ -19,34 +19,33 @@ typedef struct task {
 } task;
 
 task tasks[3];
+//periods 
 const unsigned short tasksNum = 3;
 const unsigned long taskPeriodGCD = 50;
 const unsigned long periodLightSeq = 150;
 const unsigned long periodSoundSeq = 50;
 const unsigned long periodInstrumentSel = 50;
 
-static unsigned char threeLEDs = 0x00;
-static unsigned char bilnkingLED =  0x00;
-static unsigned char speakerOutput = 0x00;
 //////////////////////////////////
+//variables for functions
 static unsigned char lightPos = 0x80;
-unsigned char sound0 = 0x00;
-unsigned char sound1 = 0x00;
-unsigned char sound2 = 0x00;
-unsigned char soundt = 0x00;
-unsigned char soundPicked = 0x00;
+unsigned char sound0 = 0x00; //keeps track of sound0 sequence
+unsigned char sound1 = 0x00; //keeps track of sound1 sequence
+unsigned char sound2 = 0x00; //keeps track of sound2 sequence
+unsigned char soundt = 0x00; 
+unsigned char soundPicked = 0x00; 
 unsigned char tmpC = 0x00;
 unsigned char button1 = 0x00;
 unsigned char SO_cnt = 0x00;
-unsigned char instrument = 0x00;
+unsigned char instrument = 0x00;//which sound is being programmed
 unsigned char sound1Check = 0x01;
 unsigned char sound0Check = 0x00;
-unsigned char lsP = 3;
+unsigned char lsP = 3; //which multiple of 150ms does each step last
 unsigned char lsCnt = 0;
 //////////////////////////////////
 
-enum LIGHTSEQ_STATES {LS_Start, LS_Play}E;
-int TickFct_LightSeq(int state){
+enum LIGHTSEQ_STATES {LS_Start, LS_Play}; //outputs the sequence of sounds
+     int TickFct_LightSeq(int state){ 
 	
 	switch(state){
 		case LS_Start:
@@ -86,8 +85,7 @@ int TickFct_LightSeq(int state){
 		}
 		else PORTC = 0xFF;
 		++lsCnt;
-		//if (lightPos == 0x80) sound0Check = 1;
-		//else sound0Check = 0;
+		
 		
 		
 		break;
@@ -98,7 +96,7 @@ int TickFct_LightSeq(int state){
 	return state;
 }
 
-enum SOUNDSEQ_STATES {SS_Start, SS_Wait, SS_Press, SS_Release};
+enum SOUNDSEQ_STATES {SS_Start, SS_Wait, SS_Press, SS_Release}; //user programs sequence
 int TickFct_SoundSeq(int state){
 	
 	switch(state){
@@ -192,7 +190,7 @@ int TickFct_SoundSeq(int state){
 	return state;
 }
 
-enum INSTRUMENT_SEL {IS_Start, IS_Wait, IS_Press, IS_Release, BPM_Inc, BPM_Dec };
+enum INSTRUMENT_SEL {IS_Start, IS_Wait, IS_Press, IS_Release, BPM_Inc, BPM_Dec }; //user changes sound to program or bpm of the sequence
 int TickFct_InstrumentSel(int state){
 	
 	switch(state){
@@ -218,7 +216,6 @@ int TickFct_InstrumentSel(int state){
 		state = IS_Release;
 		
 		case IS_Release:
-		//if (!((button1 & 0x80) && (button1 & 0x40))) state = IS_Wait;
 		if (!button1) state = IS_Wait;
 		break;
 		
@@ -375,6 +372,5 @@ int main(void)
 		button1 = ~PINA;
 	}
 }
-
 
 
